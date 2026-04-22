@@ -138,17 +138,17 @@ if facturas_data:
                 mostrar_pendiente = '-'
             else:
                 # Si falta pagar, mostramos el saldo, si el saldo es 0 mostramos guion
-                mostrar_bn = round(pendiente_bn, 4) if pendiente_bn > 0 else '-'
-                mostrar_bcp = round(pendiente_bcp, 4) if pendiente_bcp > 0 else '-'
-                mostrar_pendiente = round(fac['amount_residual'], 4) if fac['amount_residual'] > 0 else '-'
+                mostrar_bn = round(pendiente_bn, 2) if pendiente_bn > 0 else '-'
+                mostrar_bcp = round(pendiente_bcp, 2) if pendiente_bcp > 0 else '-'
+                mostrar_pendiente = round(fac['amount_residual'], 2) if fac['amount_residual'] > 0 else '-'
 
             datos_procesados.append({
                 'N FACTURA': fac['name'],
                 'CLIENTE': fac['partner_id'][1] if fac['partner_id'] else 'N/A',
                 'FECHA': fac['invoice_date'],
                 'VENCIMIENTO': vencimiento if vencimiento else '-',
-                'IMPORTE SIN IMPUESTO': round(fac.get('amount_untaxed', 0.0), 4),
-                'TOTAL CON IMPUESTOS': round(fac['amount_total'], 4),
+                'IMPORTE SIN IMPUESTO': round(fac.get('amount_untaxed', 0.0), 2),
+                'TOTAL CON IMPUESTOS': round(fac['amount_total'], 2),
                 'DETRACCION PAGO BN': mostrar_bn,
                 'PORCENTAJE': texto_porcentaje, 
                 'IMPORTE PAGO BCP': mostrar_bcp,
@@ -168,7 +168,22 @@ if facturas_data:
                 return 'background-color: #f8d7da; color: #721c24; font-weight: bold;'
             return ''
 
-        df_estilizado = df.style.map(pintar_estado, subset=['STATUS DETRACCIÓN'])
+        # --- NUEVO: Función estricta para redondear a 2 decimales ---
+        def formato_moneda(val):
+            # Si es un número, lo fuerza a 2 decimales (ej. 1650.00). Si es un guion '-', lo deja igual.
+            if isinstance(val, (int, float)):
+                return f"{val:.2f}"
+            return val
+
+        # Definimos qué columnas llevan este formato
+        columnas_dinero = ['IMPORTE SIN IMPUESTO', 'TOTAL CON IMPUESTOS', 'DETRACCION PAGO BN', 'IMPORTE PAGO BCP', 'PENDIENTE DE PAGO']
+
+        # Aplicamos colores Y el nuevo formato a la tabla al mismo tiempo
+        df_estilizado = (
+            df.style
+            .map(pintar_estado, subset=['STATUS DETRACCIÓN'])
+            .format(formato_moneda, subset=columnas_dinero)
+        )
         st.dataframe(df_estilizado, use_container_width=True)
         
         # ==========================================
@@ -176,15 +191,21 @@ if facturas_data:
         # ==========================================
         df_export = df.drop(columns=['STATUS DETRACCIÓN']).copy()
         
+        #Calculamos los totales seguros (ignorando los guiones)
+        total_impuestos = pd.to_numeric(df_export['TOTAL CON IMPUESTOS'], errors='coerce').sum()
+        total_bn = pd.to_numeric(df_export['DETRACCION PAGO BN'], errors='coerce').sum()
+        total_bcp = pd.to_numeric(df_export['IMPORTE PAGO BCP'], errors='coerce').sum()
+        total_pendiente = pd.to_numeric(df_export['PENDIENTE DE PAGO'], errors='coerce').sum()
+
         # Sumatorias a prueba de fallos (ignora los guiones)
         totales = {
             'N FACTURA': '', 'CLIENTE': 'TOTALES', 'FECHA': '', 'VENCIMIENTO': '',
             'IMPORTE SIN IMPUESTO': '',
-            'TOTAL CON IMPUESTOS': pd.to_numeric(df_export['TOTAL CON IMPUESTOS'], errors='coerce').sum(),
-            'DETRACCION PAGO BN': pd.to_numeric(df_export['DETRACCION PAGO BN'], errors='coerce').sum(),
+            'TOTAL CON IMPUESTOS': total_impuestos,
+            'DETRACCION PAGO BN': total_bn,
             'PORCENTAJE': '',
-            'IMPORTE PAGO BCP': pd.to_numeric(df_export['IMPORTE PAGO BCP'], errors='coerce').sum(),
-            'PENDIENTE DE PAGO': pd.to_numeric(df_export['PENDIENTE DE PAGO'], errors='coerce').sum(),
+            'IMPORTE PAGO BCP': total_bcp,
+            'PENDIENTE DE PAGO': total_pendiente,
             'ESTADO DE PAGO': ''
         }
         
@@ -224,11 +245,39 @@ if facturas_data:
             
         excel_data = output.getvalue()
         
-        st.download_button(
-            label="📊 Descargar Reporte en Excel",
-            data=excel_data,
-            file_name='Reporte_Detracciones_Exacto.xlsx',
-            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        )
+        # --- MAQUETACIÓN INFERIOR (BOTÓN + TABLA DE TOTALES) ---
+        st.write("") # Un pequeño espacio en blanco
+        
+        # Dividimos la pantalla: una columna pequeña a la izquierda, una más grande a la derecha
+        col1, col2 = st.columns([1.5, 3.5])
+        
+        with col1:
+            st.download_button(
+                label="📊 Descargar Reporte en Excel",
+                data=excel_data,
+                file_name='Reporte_Detracciones_Exacto.xlsx',
+                mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            )
+            
+        with col2:
+            # Construimos la tabla idéntica a la del cliente usando HTML
+            html_totales = f"""
+            <table style="width:100%; border-collapse: collapse; text-align: center; font-family: sans-serif;">
+                <tr style="background-color: #f0f2f6; font-size: 11px; color: #31333F; text-transform: uppercase;">
+                    <th style="border: 1px solid #ddd; padding: 6px;">Total con Impuestos</th>
+                    <th style="border: 1px solid #ddd; padding: 6px;">Total BN</th>
+                    <th style="border: 1px solid #ddd; padding: 6px;">Total BCP</th>
+                    <th style="border: 1px solid #ddd; padding: 6px;">Pendiente Total</th>
+                </tr>
+                <tr style="font-weight: bold; font-size: 14px; color: #111;">
+                    <td style="border: 1px solid #ddd; padding: 10px;">S/ {total_impuestos:,.2f}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px;">S/ {total_bn:,.2f}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px;">S/ {total_bcp:,.2f}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px;">S/ {total_pendiente:,.2f}</td>
+                </tr>
+            </table>
+            """
+            st.markdown(html_totales, unsafe_allow_html=True)
+            
     else:
         st.success("¡Todo al día! No hay facturas con detracciones pendientes.")
