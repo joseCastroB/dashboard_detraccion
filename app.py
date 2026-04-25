@@ -14,6 +14,25 @@ PASSWORD = st.secrets["ODOO_PASSWORD"]
 
 # Configuración de la página Streamlit
 st.set_page_config(page_title="Dashboard de Detracciones", layout="wide")
+# ==========================================
+# --- NUEVO: OCULTAR MENÚS Y BOTONES DE GITHUB ---
+# ==========================================
+ocultar_menu_estilo = """
+    <style>
+    /* Oculta el menú principal de hamburguesa */
+    #MainMenu {visibility: hidden;}
+    
+    /* Oculta el encabezado completo (donde están los botones de GitHub y Deploy) */
+    header {visibility: hidden;}
+    
+    /* Oculta el pie de página por defecto de Streamlit */
+    footer {visibility: hidden;}
+    
+    /* Asegura que el botón de 'Deploy' desaparezca en la nube */
+    .stDeployButton {display:none;}
+    </style>
+"""
+st.markdown(ocultar_menu_estilo, unsafe_allow_html=True)
 st.title("📊 Control de Detracciones Pendientes")
 
 # ==========================================
