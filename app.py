@@ -19,17 +19,14 @@ st.set_page_config(page_title="Dashboard de Detracciones", layout="wide")
 # ==========================================
 ocultar_menu_estilo = """
     <style>
-    /* Oculta el menú principal de hamburguesa */
-    #MainMenu {visibility: hidden;}
+    /* Ocultar específicamente el botón de "Deploy" */
+    .stDeployButton {display: none !important;}
     
-    /* Oculta el encabezado completo (donde están los botones de GitHub y Deploy) */
-    header {visibility: hidden;}
+    /* Ocultar los enlaces a GitHub o "Manage app" de la barra superior */
+    header [data-testid="stToolbar"] a {display: none !important;}
     
-    /* Oculta el pie de página por defecto de Streamlit */
-    footer {visibility: hidden;}
-    
-    /* Asegura que el botón de 'Deploy' desaparezca en la nube */
-    .stDeployButton {display:none;}
+    /* Ocultar la marca de agua del pie de página */
+    footer {visibility: hidden !important;}
     </style>
 """
 st.markdown(ocultar_menu_estilo, unsafe_allow_html=True)
