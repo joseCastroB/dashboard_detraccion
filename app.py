@@ -19,30 +19,33 @@ st.set_page_config(page_title="Dashboard de Detracciones", layout="wide")
 # ==========================================
 ocultar_menu_estilo = """
     <style>
-    /* 1. CABECERA: Ocultar botón Fork, GitHub y Deploy */
-    [data-testid="stToolbar"] a {
-        display: none !important;
-    }
-    [data-testid="stDeployButton"] {
+    /* 1. CABECERA: Destruir cualquier enlace (GitHub, Fork, etc.) en la parte superior */
+    header a {
         display: none !important;
     }
     
-    /* 2. PUBLICIDAD INFERIOR: Ocultar "Hosted with Streamlit" y "Created by..." */
-    /* Streamlit Cloud usa estas clases específicas para inyectar su publicidad */
-    .viewerBadge_container, 
-    .viewerBadge_link, 
-    [class^="viewerBadge_"] {
+    /* 2. CABECERA: Destruir botones específicos inyectados por la nube */
+    [data-testid="stDeployButton"], 
+    [data-testid="stGitHubActionButton"] {
         display: none !important;
     }
     
-    /* A veces inyectan la publicidad roja como un iFrame, esto lo bloquea */
-    iframe[src*="badge"] {
+    /* 3. PUBLICIDAD INFERIOR: Destruir los contenedores flotantes ("Hosted with Streamlit" y tu perfil) */
+    #creator-badge-container,
+    #viewer-badge-container,
+    .viewerBadge_container,
+    .viewerBadge_link {
         display: none !important;
     }
     
-    /* 3. Ocultar el pie de página clásico */
+    /* 4. Destruir cualquier enlace que apunte a Streamlit en toda la página */
+    a[href*="streamlit.io/cloud"] {
+        display: none !important;
+    }
+    
+    /* 5. Ocultar el pie de página clásico */
     footer {
-        display: none !important;
+        visibility: hidden !important;
     }
     </style>
 """
