@@ -17,39 +17,13 @@ st.set_page_config(page_title="Dashboard de Detracciones", layout="wide")
 # ==========================================
 # --- NUEVO: OCULTAR MENÚS Y BOTONES DE GITHUB ---
 # ==========================================
-ocultar_menu_estilo = """
+# Ocultar solo el pie de página
+ocultar_pie = """
     <style>
-    /* 1. CABECERA: Destruir cualquier enlace (GitHub, Fork, etc.) en la parte superior */
-    header a {
-        display: none !important;
-    }
-    
-    /* 2. CABECERA: Destruir botones específicos inyectados por la nube */
-    [data-testid="stDeployButton"], 
-    [data-testid="stGitHubActionButton"] {
-        display: none !important;
-    }
-    
-    /* 3. PUBLICIDAD INFERIOR: Destruir los contenedores flotantes ("Hosted with Streamlit" y tu perfil) */
-    #creator-badge-container,
-    #viewer-badge-container,
-    .viewerBadge_container,
-    .viewerBadge_link {
-        display: none !important;
-    }
-    
-    /* 4. Destruir cualquier enlace que apunte a Streamlit en toda la página */
-    a[href*="streamlit.io/cloud"] {
-        display: none !important;
-    }
-    
-    /* 5. Ocultar el pie de página clásico */
-    footer {
-        visibility: hidden !important;
-    }
+    footer {visibility: hidden !important;}
     </style>
 """
-st.markdown(ocultar_menu_estilo, unsafe_allow_html=True)
+st.markdown(ocultar_pie, unsafe_allow_html=True)
 st.title("📊 Control de Detracciones Pendientes")
 
 # ==========================================
