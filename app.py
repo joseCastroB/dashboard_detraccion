@@ -19,13 +19,20 @@ st.set_page_config(page_title="Dashboard de Detracciones", layout="wide")
 # ==========================================
 ocultar_menu_estilo = """
     <style>
-    /* Ocultar específicamente el botón de "Deploy" */
-    .stDeployButton {display: none !important;}
+    /* 1. Ocultar el botón de GitHub / Fork */
+    [data-testid="stGitHubActionButton"] {display: none !important;}
     
-    /* Ocultar los enlaces a GitHub o "Manage app" de la barra superior */
-    header [data-testid="stToolbar"] a {display: none !important;}
+    /* 2. Ocultar cualquier otro enlace forzado en la cabecera */
+    [data-testid="stToolbar"] a {display: none !important;}
     
-    /* Ocultar la marca de agua del pie de página */
+    /* 3. Ocultar el botón de Deploy */
+    [data-testid="stDeployButton"] {display: none !important;}
+    
+    /* 4. Ocultar las burbujas flotantes de perfil en la esquina inferior derecha */
+    [data-testid="stCreatorBadge"] {display: none !important;}
+    [data-testid="stViewerBadge"] {display: none !important;}
+    
+    /* 5. Ocultar la marca de agua del pie de página ("Made with Streamlit") */
     footer {visibility: hidden !important;}
     </style>
 """
